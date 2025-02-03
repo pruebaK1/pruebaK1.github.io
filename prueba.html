@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/DTD/loose.dtd">
+<html>
+<head>
+<title>Login</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Cache-Control" content="no-cache">
+<link rel="shortcut icon" href="/180523.1625/favicon.ico" >
+<link href="/180523.1625/login.css" rel="stylesheet" type="text/css">
+<link href="/180523.1625/style.css" rel="stylesheet" type="text/css">
+<link href="/180523.1625/help.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" language="javascript" src="jsl10n.cgi?l=en_US&v=/180523.1625"></script>
+<script type="text/javascript" src="/180523.1625/js/jquery.js"></script>
+<script type="text/javascript" src="/180523.1625/util.js"></script>
+<script type="text/javascript" src="/180523.1625/index.js"></script>
+<script type="text/javascript" src="/180523.1625/js/jquery.ui.js"></script>
+<script type="text/javascript" language="javascript">
+//<!--
+var globals = {
+	first_login : false,
+	postback : false,
+	fixed : false,
+	country : ""
+};
+
+function onLangChange() {
+	$("#lang_changed").val("yes");
+	$("#loginform").submit();
+}
+
+function validateForm() {
+	if ($("#lang_changed").val() == "yes")
+		return true;
+
+	if ($("#country").val() == "0") {
+		$("#errmsg").text("Please select your country.");
+		return false;
+	}
+
+	if (!$("#agreed").is(":checked")) {
+		$("#errmsg").html("To use this product, you must agree to<br>terms of use.");
+		return false;
+	}
+
+	return true;
+}
+
+function isMobile() {
+	return  navigator.userAgent.match(/Android/i) ||
+			navigator.userAgent.match(/BlackBerry/i) ||
+			navigator.userAgent.match(/iPhone|iPad|iPod/i) ||
+			navigator.userAgent.match(/Opera Mini/i) ||
+			navigator.userAgent.match(/IEMobile/i);
+}
+
+$(document).ready(function() {
+	$("#username").focus();
+	cache_images([
+		'main_top.png', 'main.png', 'link.png',
+		'net.png', '4dv.png', 'srv.png',
+		'system.png', 'border.gif', 'spectr.gif']);
+
+	if (globals.first_login) {
+		$("#ui_language").change(onLangChange);
+		$("#loginform").submit(validateForm);
+		if (!globals.postback && !globals.fixed)
+			$("#country").val(0);
+		else
+			$("#country").val(globals.country);
+	}
+
+	if (isMobile() || $('.first_login').length) {
+		$('.desktopView').addClass("initial_hide");
+		$('.mobileView').removeClass("initial_hide");
+	} else {
+		$('.mobileView').addClass("initial_hide");
+		$('.desktopView').removeClass("initial_hide");
+	}
+});
+//-->
+</script>
+</head>
+
+<body class="">
+<table border="0" cellpadding="0" cellspacing="0" align="center" class="loginsubtable">
+<form enctype="multipart/form-data" id="loginform" method="post" action="/login.cgi">
+	<tr>
+		<td valign="top"><img src="/180523.1625/images/airos_logo.png"></td>
+		<td class="loginsep">
+				<input type="hidden" name="uri" id="uri" value="/index.cgi" />
+				<table border="0" cellpadding="0" cellspacing="0" class="logintable" align="center">
+					<tr>
+						<td colspan="2" align="center">
+							<div id="errmsg" class="error">
+								
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+					<tr>
+						<td><label for="username">User Name:</label></td>
+						<td><input class="config" type="text" name="username" id="username"/></td>
+					</tr>
+					<tr>
+						<td><label for="password">Password:</label></td>
+						<td><input class="config" type="password" name="password" id="password"/></td>
+					</tr>
+					
+					<tr>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+				</table>
+		</td>
+	</tr>
+
+	
+
+        <tr>
+		<td colspan="2" class="submit" align="right">
+			<input type="submit" value="Login" />
+		</td>
+	</tr>
+</form>
+</table>
+<footer class="footer">
+	<div class="umobileSection">
+		<div class="mobileView">
+			<img class="umobile" src="/180523.1625/images/unms.svg">&nbsp;
+			<div class="umobileApp">
+				<div class="umobileAppText">Have a SmartPhone? Try our new UNMS to install this device</div>
+			</div>
+			<a href="https://play.google.com/store/apps/details?id=com.ubnt.umobile">
+			<img class="badge gplay" src="/180523.1625/images/gplay.svg" alt="GooglePlay"></a>&nbsp;
+			<a href="https://itunes.apple.com/us/app/umobile-ubnt/id1183022489?mt=8">
+			<img class="badge" src="/180523.1625/images/astore.svg" alt="AppleStore"></a>
+		</div>
+		<div class="desktopView">
+			<div class="logoText">Powerful tools available now for free</div>
+			<a target="_blank" href="https://www.ubnt.com/software/">
+				<img class="logos" src="/images/login-logos.svg">
+			</a>
+		</div>
+	</div>
+</footer>
+</body>
+</html>
