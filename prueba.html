@@ -1,16 +1,138 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>¿Qué opinas de mí?</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login de Instagram</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fafafa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .login-container {
+      text-align: center;
+    }
+
+    .login-box {
+      background-color: #fff;
+      border: 1px solid #dbdbdb;
+      padding: 20px 40px;
+      width: 300px;
+      margin-bottom: 10px;
+    }
+
+    .instagram-logo {
+      width: 175px;
+      margin-bottom: 20px;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #dbdbdb;
+      border-radius: 3px;
+      font-size: 14px;
+    }
+
+    .login-form button {
+      width: 100%;
+      padding: 10px;
+      background-color: #0095f6;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .login-form button:hover {
+      background-color: #0077c2;
+    }
+
+    .separator {
+      display: flex;
+      align-items: center;
+      color: #8e8e8e;
+      margin: 15px 0;
+    }
+
+    .separator::before,
+    .separator::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #dbdbdb;
+    }
+
+    .separator span {
+      padding: 0 10px;
+    }
+
+    .facebook-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #385185;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .facebook-logo {
+      width: 16px;
+      margin-right: 8px;
+    }
+
+    .forgot-password {
+      color: #00376b;
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .signup-box {
+      background-color: #fff;
+      border: 1px solid #dbdbdb;
+      padding: 20px;
+      width: 300px;
+      font-size: 14px;
+    }
+
+    .signup-box a {
+      color: #0095f6;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <h1>¿Qué opinas de mí?</h1>
-    <p>Por favor, escribe tu respuesta en el siguiente cuadro:</p>
-
-    <textarea id="opinion" rows="10" cols="30" placeholder="Escribe tu opinión aquí..."></textarea>
-    <br><br>
-    <button onclick="alert('¡Gracias por tu opinión!')">Enviar</button>
+  <div class="login-container">
+    <div class="login-box">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Instagram_logo.svg/1200px-Instagram_logo.svg.png" alt="Instagram Logo" class="instagram-logo">
+      <form class="login-form">
+        <input type="text" placeholder="Teléfono, usuario o correo electrónico" required>
+        <input type="password" placeholder="Contraseña" required>
+        <button type="submit">Iniciar sesión</button>
+      </form>
+      <div class="separator">
+        <span>O</span>
+      </div>
+      <a href="#" class="facebook-login">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook Logo" class="facebook-logo">
+        Iniciar sesión con Facebook
+      </a>
+      <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+    </div>
+    <div class="signup-box">
+      <p>¿No tienes una cuenta? <a href="#">Regístrate</a></p>
+    </div>
+  </div>
 </body>
 </html>
