@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="//cdn.jsdelivr.net/npm/@clappr/player@0.8/dist/clappr.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/@swarmcloud/hls/p2p-engine.min.js"></script>
+<style>
+body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden}
+#player{position:absolute;top:0;left:0;width:100%;height:100%}
+.media-control[data-media-control] .media-control-layer[data-controls] .bar-container[data-seekbar] .bar-background[data-seekbar]{height:5px!important}
+.media-control[data-media-control] .media-control-layer[data-controls] .bar-container[data-seekbar]:hover .bar-background[data-seekbar]{height:7px!important}
+.media-control[data-media-control] .media-control-layer[data-controls] .bar-container[data-seekbar] .bar-background[data-seekbar] .bar-fill-1[data-seekbar]{background-color:red!important}
+.media-control[data-media-control] .media-control-layer[data-controls] .bar-container[data-seekbar] .bar-background[data-seekbar]{background-color:rgba(255,255,255,0.2)!important}
+</style>
+</head>
+<body>
+<div id="player"></div>
+<script>
+    var playbackURL = "https://pecdl.pricesaskeloadsc.com:443/global/fox1ar/index.m3u8?token=bcab1390984ac2e87f6a530b4c2f5d5151204693-4d-1739014218-1738981818";
+    var p2pConfig = {
+        live: true,
+        trackerZone: 'us',    
+    }
+    P2PEngineHls.tryRegisterServiceWorker(p2pConfig).then(() => {
+        var player = new Clappr.Player({
+            source: playbackURL,
+            parentId: "#player",
+            poster: '',
+            width: '100%',
+            height: '100%',
+            autoPlay: true,  <!-- Cambié a true para reproducción automática -->
+            plugins: [],
+        });
+        p2pConfig.hlsjsInstance = player.core.getCurrentPlayback()?._hls;
+        var engine = new P2PEngineHls(p2pConfig);
+    });
+</script>
+<script id="aclib" type="text/javascript" src="https://alwaysdomain01.online/ads/lib7.js"></script>
+<script type="text/javascript">
+    aclib.runPop({
+        zoneId: '9191366',
+    });
+</script>
+<script type="text/javascript">
+!function(){try{var t=["sandbox","hasAttribute","frameElement","data","indexOf","href","domain","","plugins","undefined","namedItem","object","createElement","onerror","type","application/pdf","setAttribute","style","visibility:hidden;width:0;
