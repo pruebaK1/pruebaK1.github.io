@@ -2,38 +2,130 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Player HLS</title>
+<title>HLS Player Auto-Reconnect</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
 <style>
-html,body{margin:0;background:#000}
-video{width:100%;height:100vh}
+html,body{
+  margin:0;
+  background:#000;
+  height:100%;
+}
+video{
+  width:100%;
+  height:100%;
+  background:#000;
+}
+#overlay{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-family:Arial;
+  font-size:16px;
+  background:rgba(0,0,0,.5);
+  z-index:10;
+}
+.hidden{display:none}
 </style>
 </head>
+
 <body>
 
+<div id="overlay">Reconectando stream…</div>
 <video id="video" controls autoplay playsinline></video>
 
 <script>
-const video = document.getElementById('video');
-const src = "https://node-8bba18be.streamtofu.com/69850e6e.14c35.67925795.45a3a824/nflsdquality/master.m3u8";
-
-if (Hls.isSupported()) {
-  const hls = new Hls({
-    lowLatencyMode: true,
-    maxBufferLength: 30
-  });
-  hls.loadSource(src);
-  hls.attachMedia(video);
-
-  hls.on(Hls.Events.ERROR, function (event, data) {
-    if (data.fatal) {
-      hls.destroy();
-      setTimeout(() => location.reload(), 2000);
-    }
-  });
-} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-  video.src = src;
+function getParam(name){
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
 }
+
+const encoded = getParam('r');
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+
+if(!encoded){
+  overlay.innerText = "No hay stream válido";
+  throw new Error("Sin parámetro r");
+}
+
+let STREAM_URL;
+try{
+  STREAM_URL = atob(encoded);
+}catch(e){
+  overlay.innerText = "Error en Base64";
+  throw e;
+}
+
+let hls;
+let restartTimer = null;
+
+function startPlayer(){
+  overlay.classList.add('hidden');
+
+  if(hls){
+    hls.destroy();
+    hls = null;
+  }
+
+  if(Hls.isSupported()){
+    hls = new Hls({
+      lowLatencyMode:true,
+      enableWorker:true,
+      maxBufferLength:30,
+      maxMaxBufferLength:60
+    });
+
+    hls.loadSource(STREAM_URL);
+    hls.attachMedia(video);
+
+    hls.on(Hls.Events.ERROR, function(event, data){
+      if(data.fatal){
+        restartStream();
+      }
+    });
+
+  }else if(video.canPlayType('application/vnd.apple.mpegurl')){
+    video.src = STREAM_URL;
+  }
+
+  video.play().catch(()=>{});
+}
+
+function restartStream(){
+  overlay.classList.remove('hidden');
+  clearTimeout(restartTimer);
+  restartTimer = setTimeout(startPlayer, 1500);
+}
+
+// 🔁 Si se pausa, se friza o se cae
+video.addEventListener('stalled', restartStream);
+video.addEventListener('error', restartStream);
+video.addEventListener('ended', restartStream);
+
+// 🔁 Watchdog: si no avanza el tiempo → reinicia
+let lastTime = 0;
+setInterval(()=>{
+  if(video.currentTime === lastTime && !video.paused){
+    restartStream();
+  }
+  lastTime = video.currentTime;
+}, 4000);
+
+// 🔊 Forzar audio activo
+document.addEventListener('click', ()=>{
+  video.muted = false;
+  video.volume = 1;
+  video.play().catch(()=>{});
+},{once:true});
+
+// 🚀 Iniciar
+startPlayer();
 </script>
 
 </body>
