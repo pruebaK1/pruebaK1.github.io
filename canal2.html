@@ -11,7 +11,6 @@ html, body {
     height: 100%;
     background: black;
 }
-
 #video {
     width: 100%;
     height: 100%;
@@ -22,83 +21,62 @@ html, body {
 
 <body>
 
-<video id="video" controls autoplay muted></video>
+<video id="video" controls autoplay playsinline></video>
 
 <script>
-// ===== CONFIG =====
-let RELOAD_FREEZE_TIME = 10000; // 10s sin avanzar = reload
-let FORCE_RELOAD_EVERY = 5 * 60 * 1000; // 5 min preventivo
+let RELOAD_FREEZE_TIME = 10000;
+let FORCE_RELOAD_EVERY = 5 * 60 * 1000;
 
-// Obtener ?r=
 function getParam(name) {
     return new URLSearchParams(window.location.search).get(name);
 }
 
 let encoded = getParam("r");
-if (!encoded) {
-    document.body.innerHTML = "NO PARAM r=";
-    throw "No param";
-}
+if (!encoded) throw "No r param";
 
-// Base64 fix
 encoded = encoded.replace(/-/g, '+').replace(/_/g, '/');
 while (encoded.length % 4) encoded += '=';
 
-// Decode
 let url = atob(encoded);
-console.log("STREAM:", url);
-
 let video = document.getElementById("video");
 let hls;
 let lastTime = 0;
 let lastUpdate = Date.now();
 
-// Load HLS
 function loadStream() {
-    console.log("Reloading stream...");
     if (hls) hls.destroy();
-    
+
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = url;
     } else if (Hls.isSupported()) {
-        hls = new Hls({
-            maxBufferLength: 30,
-            liveSyncDuration: 3
-        });
+        hls = new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
     }
 
-    video.play().catch(()=>{});
+    video.muted = false;   // 🔊 SIN MUTE
+    video.volume = 1.0;
+
+    video.play().catch(e => console.log("Autoplay blocked:", e));
     lastUpdate = Date.now();
 }
 
 loadStream();
 
-// Detect time update (video running)
-video.addEventListener("timeupdate", function() {
+video.addEventListener("timeupdate", () => {
     if (video.currentTime !== lastTime) {
         lastTime = video.currentTime;
         lastUpdate = Date.now();
     }
 });
 
-// Detect freeze
-setInterval(function() {
-    let now = Date.now();
-    if (!video.paused && (now - lastUpdate > RELOAD_FREEZE_TIME)) {
-        console.log("FREEZE DETECTED -> RELOAD");
+setInterval(() => {
+    if (!video.paused && Date.now() - lastUpdate > RELOAD_FREEZE_TIME) {
         loadStream();
     }
 }, 2000);
 
-// Detect error
-video.addEventListener("error", function() {
-    console.log("VIDEO ERROR -> RELOAD");
-    loadStream();
-});
-
-// Forced reload
+video.addEventListener("error", loadStream);
 setInterval(loadStream, FORCE_RELOAD_EVERY);
 </script>
 
