@@ -1,21 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@clappr/player@0.8/dist/clappr.min.js"></script>
-
 <style>
 html, body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    background: black;
 }
 
-#player {
-    position: absolute;
-    top: 0;
-    left: 0;
+#iframePlayer {
+    border: 0;
     width: 100%;
     height: 100%;
 }
@@ -23,43 +19,31 @@ html, body {
 </head>
 
 <body>
-<div id="player"></div>
+
+<iframe id="iframePlayer"></iframe>
 
 <script>
-// Obtener parametro ?r=
+// Obtener parametro
 function getParam(name) {
-    var url = new URL(window.location.href);
-    return url.searchParams.get(name);
+    return new URLSearchParams(window.location.search).get(name);
 }
 
-// Leer Base64
-var encoded = getParam("r");
-
+let encoded = getParam("r");
 if (!encoded) {
-    alert("No stream parameter (?r=)");
-    throw new Error("No r param");
+    document.body.innerHTML = "NO PARAM r=";
+    throw "No param";
 }
 
-// Decodificar Base64
-try {
-    var playbackURL = atob(encoded);
-} catch(e) {
-    alert("Invalid Base64");
-    throw e;
-}
+// Base64 URL safe fix
+encoded = encoded.replace(/-/g, '+').replace(/_/g, '/');
+while (encoded.length % 4) encoded += '=';
 
-// Clappr Player
-var player = new Clappr.Player({
-    source: playbackURL,
-    parentId: "#player",
-    width: "100%",
-    height: "100%",
-    autoPlay: true,
-    mediacontrol: {
-        seekbar: "#D4ED31",
-        buttons: "#FFFFFF"
-    }
-});
+// Decode
+let url = atob(encoded);
+console.log("LOAD:", url);
+
+// Cargar iframe
+document.getElementById("iframePlayer").src = url;
 </script>
 
 </body>
