@@ -23,7 +23,11 @@ html, body {
 <iframe id="iframePlayer"></iframe>
 
 <script>
-// Obtener parametro
+// ===== CONFIG =====
+let RELOAD_TIME = 15000; // 15 segundos sin carga = reload
+let FORCE_RELOAD_EVERY = 5 * 60 * 1000; // 5 minutos reload preventivo
+
+// Get param
 function getParam(name) {
     return new URLSearchParams(window.location.search).get(name);
 }
@@ -34,16 +38,43 @@ if (!encoded) {
     throw "No param";
 }
 
-// Base64 URL safe fix
+// Base64 fix
 encoded = encoded.replace(/-/g, '+').replace(/_/g, '/');
 while (encoded.length % 4) encoded += '=';
 
-// Decode
+// Decode URL
 let url = atob(encoded);
-console.log("LOAD:", url);
+console.log("LOADING:", url);
 
-// Cargar iframe
-document.getElementById("iframePlayer").src = url;
+let iframe = document.getElementById("iframePlayer");
+let lastLoad = Date.now();
+
+// Load iframe
+function loadPlayer() {
+    console.log("Reloading player...");
+    iframe.src = url + "&_t=" + Date.now(); // cache bypass
+    lastLoad = Date.now();
+}
+
+loadPlayer();
+
+// Detect iframe load event
+iframe.onload = function() {
+    console.log("Iframe loaded OK");
+    lastLoad = Date.now();
+};
+
+// Watchdog freeze detector
+setInterval(function() {
+    let now = Date.now();
+    if (now - lastLoad > RELOAD_TIME) {
+        console.log("FREEZE DETECTED -> Reload");
+        loadPlayer();
+    }
+}, 3000);
+
+// Forced reload every X minutes
+setInterval(loadPlayer, FORCE_RELOAD_EVERY);
 </script>
 
 </body>
