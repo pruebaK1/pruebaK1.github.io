@@ -9,66 +9,37 @@ html, body {
     height: 100%;
     background: black;
 }
-
 #iframePlayer {
     border: 0;
     width: 100%;
     height: 100%;
 }
-#overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: black;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    cursor: pointer;
-    z-index: 9999;
-}
 </style>
 </head>
-
 <body>
 
-<div id="overlay">▶ TOCA PARA ACTIVAR SONIDO</div>
-<iframe id="iframePlayer" allow="autoplay; fullscreen; encrypted-media"></iframe>
+<iframe id="iframePlayer" allow="autoplay; fullscreen"></iframe>
 
 <script>
-// ===== CONFIG =====
 let RELOAD_TIME = 15000;
 let FORCE_RELOAD_EVERY = 5 * 60 * 1000;
 
-// Get param
 function getParam(name) {
     return new URLSearchParams(window.location.search).get(name);
 }
 
 let encoded = getParam("r");
-if (!encoded) {
-    document.body.innerHTML = "NO PARAM r=";
-    throw "No param";
-}
+if (!encoded) throw "No r param";
 
-// Base64 fix
-encoded = encoded.replace(/-/g, '+').replace(/_/g, '/');
+encoded = encoded.replace(/-/g,'+').replace(/_/g,'/');
 while (encoded.length % 4) encoded += '=';
 
-// Decode
 let url = atob(encoded);
-console.log("LOAD:", url);
-
 let iframe = document.getElementById("iframePlayer");
-let overlay = document.getElementById("overlay");
 let lastLoad = Date.now();
 
-// Load iframe with autoplay param if possible
+// Load player
 function loadPlayer() {
-    console.log("Reloading iframe...");
     let autoURL = url;
     if (!autoURL.includes("?")) autoURL += "?autoplay=1";
     else autoURL += "&autoplay=1";
@@ -76,29 +47,32 @@ function loadPlayer() {
     iframe.src = autoURL + "&_t=" + Date.now();
     lastLoad = Date.now();
 }
-
 loadPlayer();
 
-// Detect iframe load
-iframe.onload = function() {
-    lastLoad = Date.now();
-};
-
 // Watchdog reload
-setInterval(function() {
-    if (Date.now() - lastLoad > RELOAD_TIME) {
-        loadPlayer();
-    }
+setInterval(() => {
+    if (Date.now() - lastLoad > RELOAD_TIME) loadPlayer();
 }, 3000);
 
-// Forced reload
 setInterval(loadPlayer, FORCE_RELOAD_EVERY);
 
-// Click to unlock audio
-overlay.addEventListener("click", function() {
-    overlay.style.display = "none";
-    iframe.focus();
-});
+// 🔊 AUDIO UNLOCK HACK (NO CLICK)
+function unlockAudio() {
+    try {
+        let ctx = new (window.AudioContext || window.webkitAudioContext)();
+        let osc = ctx.createOscillator();
+        let gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(0);
+        osc.stop(0);
+        ctx.resume();
+    } catch(e){}
+}
+
+// Run unlock loop
+setInterval(unlockAudio, 2000);
+unlockAudio();
 </script>
 
 </body>
