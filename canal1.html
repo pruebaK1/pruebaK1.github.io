@@ -21,9 +21,6 @@ html, body {
 <iframe id="iframePlayer" allow="autoplay; fullscreen"></iframe>
 
 <script>
-let RELOAD_TIME = 15000;
-let FORCE_RELOAD_EVERY = 5 * 60 * 1000;
-
 function getParam(name) {
     return new URLSearchParams(window.location.search).get(name);
 }
@@ -36,43 +33,26 @@ while (encoded.length % 4) encoded += '=';
 
 let url = atob(encoded);
 let iframe = document.getElementById("iframePlayer");
-let lastLoad = Date.now();
 
-// Load player
+// Cargar iframe
 function loadPlayer() {
-    let autoURL = url;
-    if (!autoURL.includes("?")) autoURL += "?autoplay=1";
-    else autoURL += "&autoplay=1";
-
-    iframe.src = autoURL + "&_t=" + Date.now();
-    lastLoad = Date.now();
+    iframe.src = url + (url.includes("?") ? "&" : "?") + "autoplay=1&_t=" + Date.now();
 }
 loadPlayer();
 
-// Watchdog reload
-setInterval(() => {
-    if (Date.now() - lastLoad > RELOAD_TIME) loadPlayer();
-}, 3000);
-
-setInterval(loadPlayer, FORCE_RELOAD_EVERY);
-
-// 🔊 AUDIO UNLOCK HACK (NO CLICK)
-function unlockAudio() {
-    try {
-        let ctx = new (window.AudioContext || window.webkitAudioContext)();
-        let osc = ctx.createOscillator();
-        let gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(0);
-        osc.stop(0);
-        ctx.resume();
-    } catch(e){}
+// ✅ FIX OBS: reload automático una vez
+if (!localStorage.getItem("obs_fix")) {
+    localStorage.setItem("obs_fix", "1");
+    setTimeout(() => location.reload(), 3000);
 }
 
-// Run unlock loop
-setInterval(unlockAudio, 2000);
-unlockAudio();
+// Watchdog si se congela
+let lastLoad = Date.now();
+iframe.onload = () => lastLoad = Date.now();
+
+setInterval(() => {
+    if (Date.now() - lastLoad > 15000) loadPlayer();
+}, 3000);
 </script>
 
 </body>
