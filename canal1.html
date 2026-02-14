@@ -34,25 +34,26 @@ while (encoded.length % 4) encoded += '=';
 let url = atob(encoded);
 let iframe = document.getElementById("iframePlayer");
 
-// Cargar iframe
+let loaded = false;
+
+// Cargar solo una vez
 function loadPlayer() {
-    iframe.src = url + (url.includes("?") ? "&" : "?") + "autoplay=1&_t=" + Date.now();
+    iframe.src = url + (url.includes("?") ? "&" : "?") + "autoplay=1";
 }
 loadPlayer();
 
-// ✅ FIX OBS: reload automático una vez
-if (!localStorage.getItem("obs_fix")) {
-    localStorage.setItem("obs_fix", "1");
-    setTimeout(() => location.reload(), 3000);
+// Detecta si cargó
+iframe.onload = () => {
+    loaded = true;
+};
+
+// 🔥 OBS FIX: solo un reload inicial (NO LOOP)
+if (!sessionStorage.getItem("obs_fix")) {
+    sessionStorage.setItem("obs_fix", "1");
+    setTimeout(() => location.reload(), 2000);
 }
 
-// Watchdog si se congela
-let lastLoad = Date.now();
-iframe.onload = () => lastLoad = Date.now();
-
-setInterval(() => {
-    if (Date.now() - lastLoad > 15000) loadPlayer();
-}, 3000);
+// ❌ NO recargar automático nunca (mata streams con token)
 </script>
 
 </body>
