@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@clappr/player@0.8/dist/clappr.min.js"></script>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+</style>
+</head>
+
+<body>
+<div id="player"></div>
+
+<script>
+// Obtener parametro ?r=
+function getParam(name) {
+    var url = new URL(window.location.href);
+    return url.searchParams.get(name);
+}
+
+// Leer Base64
+var encoded = getParam("r");
+
+if (!encoded) {
+    alert("No stream parameter (?r=)");
+    throw new Error("No r param");
+}
+
+// Decodificar Base64
+try {
+    var playbackURL = atob(encoded);
+} catch(e) {
+    alert("Invalid Base64");
+    throw e;
+}
+
+// Clappr Player
+var player = new Clappr.Player({
+    source: playbackURL,
+    parentId: "#player",
+    width: "100%",
+    height: "100%",
+    autoPlay: true,
+    mediacontrol: {
+        seekbar: "#D4ED31",
+        buttons: "#FFFFFF"
+    }
+});
+</script>
+
+</body>
+</html>
