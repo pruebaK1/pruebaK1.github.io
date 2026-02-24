@@ -1,0 +1,21 @@
+crear carpeta mkdir /opt/smartstream
+
+Ve a la carpeta donde están los archivos:
+
+cd /opt/smartstream
+
+crear panel.py  
+crear docker-compense.yml
+crear Dockerfile
+
+RECONSTRUIR TODO DESDE CERO
+cd /opt/smartstream
+docker compose down
+docker compose build --no-cache
+docker compose up -d 
+
+PANEL WEB
+
+Abre:
+
+http://mi-dominio:8080
