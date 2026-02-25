@@ -1,12 +1,9 @@
-FROM debian:12
-
-RUN apt update && apt install -y ffmpeg python3 python3-pip yt-dlp curl \
-    && rm -rf /var/lib/apt/lists/*
-
+FROM python:3.11-slim
+RUN apt-get update && apt-get install -y ffmpeg curl && \
+    curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
+    chmod +x /usr/local/bin/yt-dlp && \
+    pip install flask
 WORKDIR /app
-COPY panel.py /app/panel.py
-
-RUN pip3 install flask --break-system-packages
-
+COPY panel.py index.html ./
 EXPOSE 8080
-CMD ["python3", "panel.py"]
+CMD ["python", "panel.py"]
