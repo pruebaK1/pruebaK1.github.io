@@ -1,0 +1,22 @@
+# SmartStream Panel
+
+Panel web para hacer streaming RTMP desde URLs de páginas web, M3U8, RTMP, etc.
+
+## Requisitos
+- Docker
+- Docker Compose
+
+## Instalación
+```bash
+git clone https://github.com/TU-USUARIO/TU-REPO.git
+cd TU-REPO
+docker compose up -d --build
+```
+
+Abre http://IP-DEL-SERVIDOR:8080
+
+## Uso
+- **URL Fuente:** URL de página web con m3u8, m3u8 directo, o RTMP
+- **RTMP Destino:** rtmp://a.rtmp.youtube.com/live2
+- **Stream Key:** tu clave de stream
+EOF
