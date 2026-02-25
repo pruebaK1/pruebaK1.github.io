@@ -1,72 +1,93 @@
-from flask import Flask, request, render_template_string
-import subprocess
+from flask import Flask, request
+import subprocess, threading, uuid, json, datetime, re
 
 app = Flask(__name__)
-ffmpeg_process = None
+streams = {}
 
-HTML = """
-<h2>🔥 SmartStream Panel</h2>
+def get_url(url):
+    if any(x in url for x in ['.m3u8', '.m3u', 'rtmp://', 'rtmps://']):
+        return url
+    # Intentar extraer m3u8 del HTML de la pagina
+    try:
+        html = subprocess.check_output(['curl','-s','-L','--max-time','15',url], text=True)
+        m = re.search(r'https?://[^\s"\']+\.m3u8[^\s"\']*', html)
+        if m:
+            return m.group(0)
+    except:
+        pass
+    # Intentar con yt-dlp
+    try:
+        return subprocess.check_output(['yt-dlp','-f','best','-g','--no-playlist',url], text=True, timeout=30).strip().split('\n')[0]
+    except:
+        return None
 
-<form method="post">
-URL Web o M3U8:<br>
-<input name="url" size="80"><br><br>
-
-RTMP Output:<br>
-<input name="rtmp" size="80" value="rtmp://YOUR_OWNCAST_IP/live/STREAMKEY"><br><br>
-
-<button type="submit" name="action" value="start">▶ START STREAM</button>
-<button type="submit" name="action" value="stop">⛔ STOP STREAM</button>
-</form>
-
-{% if result %}
-<h3>Status:</h3>
-<pre>{{ result }}</pre>
-{% endif %}
-"""
-
-@app.route("/", methods=["GET", "POST"])
+@app.route('/')
 def index():
-    global ffmpeg_process
-    result = ""
+    return open('/app/index.html').read(), 200, {'Content-Type': 'text/html'}
 
-    if request.method == "POST":
-        url = request.form["url"]
-        rtmp = request.form["rtmp"]
-        action = request.form["action"]
+@app.route('/api/streams', methods=['GET'])
+def list_streams():
+    return json.dumps([{'id':sid,'name':s['name'],'source':s['source'],'rtmp':s['rtmp'],'status':s['status'],'startedAt':s.get('startedAt'),'logs':s.get('logs',[])[-50:]} for sid,s in streams.items()])
 
-        if action == "stop":
-            if ffmpeg_process:
-                ffmpeg_process.kill()
-                ffmpeg_process = None
-                result = "Stream detenido"
-            else:
-                result = "No hay stream activo"
+@app.route('/api/streams', methods=['POST'])
+def add_stream():
+    d = request.get_json()
+    sid = str(uuid.uuid4())[:8]
+    streams[sid] = {'id':sid,'name':d.get('name','Stream'),'source':d['source'],'rtmp':d['rtmp'],'status':'stopped','proc':None,'logs':[]}
+    return json.dumps({'ok':True,'id':sid})
 
-        if action == "start":
-            if ffmpeg_process:
-                result = "Ya hay un stream activo"
-            else:
-                # Detectar si es m3u8 directo
-                if ".m3u8" in url:
-                    stream_url = url
-                else:
-                    # Extraer con yt-dlp
-                    try:
-                        cmd = ["yt-dlp", "-f", "best", "-g", url]
-                        stream_url = subprocess.check_output(cmd, text=True).strip()
-                    except:
-                        return render_template_string(HTML, result="❌ No se pudo extraer M3U8")
+@app.route('/api/streams/<sid>/start', methods=['POST'])
+def start(sid):
+    s = streams.get(sid)
+    if not s or s['status'] == 'running':
+        return json.dumps({'error':'no disponible'})
+    def run():
+        s['status'] = 'extracting'
+        s['logs'] = ['[INFO] Extrayendo fuente...']
+        url = get_url(s['source'])
+        if not url:
+            s['status'] = 'error'
+            s['logs'].append('[ERROR] No se pudo obtener la URL')
+            return
+        s['logs'].append('[INFO] URL obtenida OK')
+        s['logs'].append('[INFO] Iniciando FFmpeg...')
+        s['status'] = 'running'
+        s['startedAt'] = datetime.datetime.utcnow().isoformat()
+        proc = subprocess.Popen(
+            ['ffmpeg','-re','-i',url,'-c','copy','-f','flv',s['rtmp']],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
+        s['proc'] = proc
+        for line in proc.stdout:
+            if line.strip():
+                s['logs'] = s['logs'][-150:] + [line.rstrip()]
+        proc.wait()
+        s['status'] = 'stopped' if proc.returncode == 0 else 'error'
+        s['proc'] = None
+    threading.Thread(target=run, daemon=True).start()
+    return json.dumps({'ok':True})
 
-                # Lanzar FFmpeg
-                ffmpeg_cmd = [
-                    "ffmpeg", "-re", "-i", stream_url,
-                    "-c", "copy", "-f", "flv", rtmp
-                ]
+@app.route('/api/streams/<sid>/stop', methods=['POST'])
+def stop(sid):
+    s = streams.get(sid)
+    if s and s['proc']:
+        s['proc'].kill()
+        s['proc'] = None
+    if s:
+        s['status'] = 'stopped'
+    return json.dumps({'ok':True})
 
-                ffmpeg_process = subprocess.Popen(ffmpeg_cmd)
-                result = f"✅ Stream iniciado\nFuente:\n{stream_url}"
+@app.route('/api/streams/<sid>', methods=['DELETE'])
+def delete(sid):
+    s = streams.pop(sid, None)
+    if s and s['proc']:
+        s['proc'].kill()
+    return json.dumps({'ok':True})
 
-    return render_template_string(HTML, result=result)
+@app.route('/api/streams/<sid>/logs', methods=['GET'])
+def logs(sid):
+    s = streams.get(sid)
+    return json.dumps({'logs': s.get('logs',[]) if s else []})
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
