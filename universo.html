@@ -13,24 +13,19 @@ body { background: #000; width: 100vw; height: 100vh; overflow: hidden; }
 <body>
 <div id="player"></div>
 <script>
-const p = new URLSearchParams(window.location.search);
-const url = p.get('url');
-const kid = p.get('kid');
-const key = p.get('key');
-
-var config = {
-  file: url || '',
+jwplayer('player').setup({
+  file: 'https://live-oneapp-prd-news.akamaized.net/Content/CMAF_OL2-CTR-4s/Live/channel(universo-east)/master.mpd',
   width: '100%',
   height: '100%',
   autostart: true,
-  stretching: 'fill'
-};
-
-if (kid && key) {
-  config.drm = { clearkey: { keyId: kid, key: key } };
-}
-
-jwplayer('player').setup(config);
+  stretching: 'fill',
+  drm: {
+    clearkey: {
+      keyId: '96b67fa09140329a89b7a1ead134eda3',
+      key: 'c618d32c56cdc6cad8330eb98507ca3f'
+    }
+  }
+});
 </script>
 </body>
 </html>
